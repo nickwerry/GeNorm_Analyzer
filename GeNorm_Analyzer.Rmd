@@ -3,6 +3,11 @@ title: "GeNorm_Analyzer"
 author: "Nick Werry"
 date: "21/01/2021"
 output: html_document
+params:
+  input_file:
+    label: "load input file"
+    input: file
+    value: ""
 ---
 
 ```{r setup, include=FALSE}
@@ -22,7 +27,7 @@ library(tidyverse)
 Load raw qPCR data, combine technical replicates
 ```{r qPCR Data}
 #Load file
-my.qPCRBatch.qPCR.techReps <- read.qPCR(filename = "B1p172_B1p174.1.2.tsv")
+my.qPCRBatch.qPCR.techReps <- read.qPCR(filename = params$input_file)
 
 #Combine technical replicates
 my.combinedTechReps <- combineTechReps(my.qPCRBatch.qPCR.techReps)
