@@ -1,0 +1,67 @@
+---
+title: "GeNorm_Analyzer"
+author: "Nick Werry"
+date: "21/01/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+Load Libraries
+```{r Libraries}
+#BiocManager::install("ReadqPCR")
+library("ReadqPCR")
+#BiocManager::install("NormqPCR")
+library("NormqPCR")
+library("RColorBrewer")
+library(tidyverse)
+```
+
+Load raw qPCR data, combine technical replicates
+```{r qPCR Data}
+#Load file
+my.qPCRBatch.qPCR.techReps <- read.qPCR(filename = "B1p172_B1p174.1.2.tsv")
+
+#Combine technical replicates
+my.combinedTechReps <- combineTechReps(my.qPCRBatch.qPCR.techReps)
+```
+
+```{r GeNorm}
+browseVignettes("NormqPCR")
+#Use GeNorm algorithm to rank reference genes
+my.res <- selectHKs(my.combinedTechReps, 
+                    method = "geNorm", 
+                    Symbols = featureNames(my.combinedTechReps), 
+                    minNrHK = 2, log = TRUE)
+
+#Create dataframe of ranks
+my.ranks <- data.frame(c(1, 1:(length(my.res$ranking)-1)), my.res$ranking)
+names(my.ranks) <- c("rank", "HKG")
+my.ranks
+
+#convert to df
+my.variation <- data.frame(my.res$variation)
+my.variation
+my.meanM <- data.frame(my.res$meanM)
+my.meanM
+
+#meanM Plot
+ggplot(my.meanM, aes(x = rownames(my.meanM), y = my.res.meanM, group = 1)) +
+    geom_point() +
+    geom_line() +
+    ylab( "Average expression stability M") +
+    xlab("Number of remaining control genes") +
+    scale_y_continuous(limits = c(0,1.5)) +
+    geom_hline(yintercept = 0.5, color = "red")
+
+    
+#Variation Plot
+ggplot(my.variation, aes(x = rownames(my.variation), y = my.res.variation)) +
+    geom_col() +
+    ylab( "Variation") +
+    xlab("Number of Reference Genes") +
+    geom_hline(yintercept = 0.15, color = "red")
+```
+
